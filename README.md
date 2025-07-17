@@ -1,1 +1,1 @@
-# context-chatbot
+A chatbot built on Kafka, Langchain and Qdrant.
