@@ -1,3 +1,4 @@
+import asyncio
 from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
 import os
 import shutil
@@ -5,6 +6,7 @@ from typing import List
 
 from kafka import KafkaProducer
 
+from components.file_upload import FileContentResponse
 from components.file_upload.process_file_stream import process_stream
 from resources.kafka import get_producer
 
@@ -33,13 +35,16 @@ def validate_file(file: UploadFile):
 async def upload_files(files: List[UploadFile] = File(...)):
     try:
         saved_files = []
+        futures = []
         for file in files:
             print(f"Processing file: {file.filename}, length: {file.size}")
             validate_file(file)
-            process_stream(file.file, file.filename or "", file.size or 0)
+            future = process_stream(file.file, file.filename or "", file.size or 0)
+            if future is not None:
+                futures.append(future)
             saved_files.append(file.filename)
-        return {
-            "message": f"Successfully uploaded {len(saved_files)} file(s): {', '.join(saved_files)}"
-        }
+        responses: list[FileContentResponse] = await asyncio.gather(*futures)
+        msg = "\n".join([f"{response.file_name}: {response.status}" for response in responses])
+        return {"message": f"{msg}"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

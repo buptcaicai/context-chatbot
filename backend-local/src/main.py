@@ -1,10 +1,11 @@
+import asyncio
 import os
 import dotenv
 dotenv.load_dotenv(override=True)
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List
-from resources.kafka import create_producer, get_producer
+from resources.kafka import create_producer, create_consumer, get_producer, run_consumer_async, shutdown_consumer
 from resources.redis import connect_redis, get_redis_client 
 from routers.file_upload import router as upload_router
 from contextlib import asynccontextmanager
@@ -13,7 +14,9 @@ from contextlib import asynccontextmanager
 async def lifespan(app: FastAPI):
     # Create the Kafka producer at startup
     create_producer()
+    create_consumer()
     connect_redis()
+    consumer_task = run_consumer_async("file-injest")
     print("Kafka producer started.")
     yield
     # Cleanup on shutdown
@@ -25,6 +28,12 @@ async def lifespan(app: FastAPI):
     redis_client = get_redis_client()
     if redis_client:
         redis_client.close()
+    shutdown_consumer()
+    consumer_task.cancel()
+    try:
+        await consumer_task
+    except asyncio.CancelledError:
+        pass
 
 app = FastAPI(lifespan=lifespan)
 
