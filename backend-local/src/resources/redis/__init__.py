@@ -1,4 +1,4 @@
-import redis
+import redis.asyncio as redis
 import os
 
 __redis_client: redis.Redis | None = None

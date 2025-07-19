@@ -4,6 +4,7 @@ import ErrorPage from "./pages/ErrorPage";
 import AddDoc from "./pages/AddDoc";
 import Chat from "./pages/Chat";
 import Index from "./pages/Index";
+import { userLoader as ingestedFilesLoader } from "./pages/AddDoc";
 
 export const router = createBrowserRouter([
    {
@@ -17,6 +18,7 @@ export const router = createBrowserRouter([
          {
             path: "/add-documents",
             Component: AddDoc,
+            loader: ingestedFilesLoader,
          },
          {
             path: "/chat",

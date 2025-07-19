@@ -1,6 +1,13 @@
 import { useState, useRef } from "react";
 import { Box, Button, Typography, Paper } from "@mui/material";
 import { CloudUpload } from "@mui/icons-material";
+import { useLoaderData } from "react-router-dom";
+
+export async function userLoader() {
+   const response = await fetch(`${import.meta.env.VITE_REMOTE_ENDPOINT}/files/get-file-injested`);
+   if (!response.ok) throw new Error("Failed to fetch user");
+   return (await response.json()).message;
+}
 
 export default function AddDoc() {
    const [files, setFiles] = useState<File[]>([]);
@@ -8,6 +15,8 @@ export default function AddDoc() {
    const fileInputRef = useRef<HTMLInputElement | null>(null);
    const [error, setError] = useState<string | null>(null);
    const [success, setSuccess] = useState<string | null>(null);
+   const ingestedFiles = useLoaderData<string[]>();
+   console.log("ingestedFiles", ingestedFiles);
 
    // Allowed file types and max size (5MB)
    const allowedTypes = ["text/plain"];
@@ -147,9 +156,41 @@ export default function AddDoc() {
                   </Button>
                </Box>
             )}
-            {error && <Typography variant="body2" color="error">{error}</Typography>}
-            {success && <Typography variant="body2" color="success">{success}</Typography>}
+            {error && (
+               <Typography variant="body2" color="error">
+                  {error}
+               </Typography>
+            )}
+            {success && (
+               <Typography variant="body2" color="success">
+                  {success}
+               </Typography>
+            )}
          </Paper>
+         <Box sx={{ mt: 4, textAlign: "left" }}>
+            <Typography variant="h6" gutterBottom>
+               Already Ingested Files
+            </Typography>
+            {/* Replace the following array with your actual ingested files data */}
+            {Array.isArray(ingestedFiles) && ingestedFiles.length > 0 ? (
+               <Box component="ul" sx={{ pl: 2, mb: 0 }}>
+                  {ingestedFiles.map((s) => {
+                     const [filename, filesize] = s.split("::");
+                     return { filename, filesize };
+                  }).map((file: { filename: string; filesize: string }, idx: number) => (
+                     <li key={idx}>
+                        <Typography variant="body2">
+                           {file.filename} ({(parseInt(file.filesize) / 1024).toFixed(2)} KB)
+                        </Typography>
+                     </li>
+                  ))}
+               </Box>
+            ) : (
+               <Typography variant="body2" color="text.secondary">
+                  No files have been ingested yet.
+               </Typography>
+            )}
+         </Box>
       </Box>
    );
 }

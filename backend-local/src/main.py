@@ -27,7 +27,7 @@ async def lifespan(app: FastAPI):
         producer.close()
     redis_client = get_redis_client()
     if redis_client:
-        redis_client.close()
+        await redis_client.aclose()
     shutdown_consumer()
     consumer_task.cancel()
     try:
