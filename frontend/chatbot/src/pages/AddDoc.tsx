@@ -4,7 +4,7 @@ import { CloudUpload } from "@mui/icons-material";
 import { useLoaderData } from "react-router-dom";
 
 export async function userLoader() {
-   const response = await fetch(`${import.meta.env.VITE_REMOTE_ENDPOINT}/files/get-file-injested`);
+   const response = await fetch(`${import.meta.env.VITE_REMOTE_ENDPOINT}/files/get-file-ingested`);
    if (!response.ok) throw new Error("Failed to fetch user");
    return (await response.json()).message;
 }

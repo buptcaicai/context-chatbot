@@ -36,30 +36,36 @@ def validate_file(file: UploadFile):
 async def upload_files(files: List[UploadFile] = File(...)):
     try:
         saved_files = []
-        futures = []
+        queues = []
         msg = ""
         r = get_redis_client()
         for file in files:
             print(f"Processing file: {file.filename}, length: {file.size}")
-            if r is not None and await r.zscore("file-injested-zset", f"{file.filename}::{file.size}") is not None:
-                msg += f"{file.filename} already injested\n"
+            if r is not None and await r.zscore("file-ingested-zset", f"{file.filename}::{file.size}") is not None:
+                msg += f"{file.filename} already ingested\n"
                 continue
             validate_file(file)
-            future = process_stream(file.file, file.filename or "", file.size or 0)
-            if future is not None:
-                futures.append(future)
+            queue = await process_stream(file.file, file.filename or "", file.size or 0)
+            if queue is not None:
+                queues.append(queue)
             saved_files.append(file.filename)
-        responses: list[FileContentResponse] = await asyncio.gather(*futures)
-        msg += "\n".join([f"{response.file_name}: {response.status}" for response in responses])
+        # optional: wait for response from kafka
+        # responses: list[FileContentResponse] = await asyncio.gather(*queues)
+        # msg += "\n".join([f"{response.file_name}: {response.status}" for response in responses])
+        msg += "\n".join([f"{name} is succesfully ingested" for name in saved_files])
         return {"message": f"{msg}"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/get-file-injested")
-async def get_file_injested():
+@router.get("/get-file-ingested")
+async def get_file_ingested():
+    print(f"before get_redis_client")
     r = get_redis_client()
+    print(f"after get_redis_client")
     if r is not None:
-        injested_files = await r.zrange("file-injested-zset", 0, -1)
-        return {"message": injested_files}
+        print(f"before zrange")
+        ingested_files = await r.zrange("file-ingested-zset", 0, -1)
+        print(f"after zrange")
+        return {"message": ingested_files}
     else:
         raise HTTPException(status_code=500, detail="Redis client is not initialized")

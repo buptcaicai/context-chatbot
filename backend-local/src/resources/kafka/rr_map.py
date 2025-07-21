@@ -1,24 +1,24 @@
-from asyncio import Future
-from kafka import future
+from asyncio import Queue
 
-from components.file_upload import FileContentResponse
-
+from components.multi_kafka_response import Multi_Response
 
 __rr_map = {}
 
-def init_rr_map(request_topic: str):
-    __rr_map[request_topic] = {}
+def init_rr_map(response_topic: str):
+    __rr_map[response_topic] = {}
 
-def put_waiting_request(request_topic: str, request_id: str):
-    if request_topic not in __rr_map:
-        init_rr_map(request_topic)
-    future = Future()
-    __rr_map[request_topic][request_id] = future
-    return future
+def put_waiting_request(response_topic: str, request_id: str):
+    if response_topic not in __rr_map:
+        init_rr_map(response_topic)
+    queue: Queue[Multi_Response] = Queue()    # use queue to allow multiple messages to be sent to the same request_id
+    __rr_map[response_topic][request_id] = queue
+    return queue
 
-def match_request(request_topic: str, response: FileContentResponse):
-    future = __rr_map[request_topic].get(response.request_id)
-    if future is None:
+
+async def match_request(response_topic: str, response: Multi_Response):
+    queue: Queue[Multi_Response] | None = __rr_map[response_topic].get(response.request_id)
+    if queue is None:
         return
-    future.set_result(response)
-    del __rr_map[request_topic][response.request_id]
+    await queue.put(response)
+    if response.is_last:
+        del __rr_map[response_topic][response.request_id]

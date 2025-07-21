@@ -19,28 +19,32 @@ export default function Banner() {
          sx={
             location.pathname !== "/"
                ? {
-                    animation: "moveToTopLeft 1s cubic-bezier(0.4, 0, 0.2, 1) forwards",
+                    animation: "moveToTopLeft 1s forwards",
                     "@keyframes moveToTopLeft": {
                        "0%": {
                           width: "40vw",
+                          mt: "20vh",
                           transform: "translate(0, 0)",
                        },
                        "100%": {
                           width: "20vw",
-                          transform: "translate(-25vw, -15vh)", // Moves to top-left (5vw, 5vh)
+                          mt: "5vh",
+                          transform: "translate(-25vw, 0)", // Moves to top-left (5vw, 5vh)
                        },
                     },
                  }
                : {
                     // Reset animation for "/" route
-                    animation: "resetPosition 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards",
+                    animation: "resetPosition 1.5s forwards",
                     "@keyframes resetPosition": {
                        "0%": {
                           width: "20vw",
-                          transform: "translate(-25vw, -15vh)",
+                          mt: "5vh",
+                          transform: "translate(-25vw, 0)",
                        },
-                       "100%": {
+                       "100%": { 
                           width: "40vw",
+                          mt: "20vh",
                           transform: "translate(0, 0)",
                        },
                     },
