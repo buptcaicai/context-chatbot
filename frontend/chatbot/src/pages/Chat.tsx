@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
    Box,
    TextField,
-   Button,
    Paper,
    Typography,
    Container,
@@ -10,12 +9,10 @@ import {
    Avatar,
    List,
    ListItem,
-   ListItemText,
-   ListItemAvatar,
    Divider,
-   CircularProgress,
 } from "@mui/material";
 import { Send as SendIcon, SmartToy as BotIcon, Person as PersonIcon } from "@mui/icons-material";
+import { getRemoteEndpoint } from "../resource/config_from_s3";
 
 interface Message {
    content: string;
@@ -38,12 +35,10 @@ export default function Chat() {
       scrollToBottom();
    }, [messages]);
 
-   const connectSSE = useCallback(() => {
+   const connectSSE = useCallback(async () => {
       try {
          // Replace with your actual SSE endpoint
-         const eventSource = new EventSource(
-            `${import.meta.env.VITE_REMOTE_ENDPOINT}/chat/start?query=${encodeURIComponent(query)}`
-         );
+         const eventSource = new EventSource(`${await getRemoteEndpoint()}/chat/start?query=${encodeURIComponent(query)}`);
          eventSourceRef.current = eventSource;
 
          eventSource.onopen = () => {

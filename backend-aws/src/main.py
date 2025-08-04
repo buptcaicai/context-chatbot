@@ -1,28 +1,29 @@
 import asyncio
 import os
 import dotenv
+
+from resources.redis import connect_redis, get_redis_client
+from resources.SysParam import get_ssm_parameters_async
 dotenv.load_dotenv(override=True)
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from resources.kafka import init_kafka, shutdown_kafka
-from resources.redis import connect_redis, get_redis_client 
+from contextlib import asynccontextmanager
 from routers.file_upload import router as upload_router
 from routers.context_chat import router as chat_router
-from contextlib import asynccontextmanager
+from resources.sqs import start_sqs_consumers, stop_sqs_consumers
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Create the Kafka producer at startup
-    await init_kafka()
+    await get_ssm_parameters_async()
     connect_redis()
-    print("Kafka producer started.")
+    print("Redis connected.")
+    asyncio.create_task(start_sqs_consumers())
     yield
-    # Cleanup on shutdown
-    print("App shutting down... closing Kafka producer.")
+    print("App shutting down... closing Redis.")
     redis_client = get_redis_client()
     if redis_client:
         await redis_client.aclose()
-    await shutdown_kafka()
+    await stop_sqs_consumers()
 
 app = FastAPI(lifespan=lifespan)
 

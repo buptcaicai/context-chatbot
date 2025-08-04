@@ -2,9 +2,10 @@ import { useState, useRef } from "react";
 import { Box, Button, Typography, Paper } from "@mui/material";
 import { CloudUpload } from "@mui/icons-material";
 import { useLoaderData } from "react-router-dom";
+import { getRemoteEndpoint } from "../resource/config_from_s3";
 
 export async function userLoader() {
-   const response = await fetch(`${import.meta.env.VITE_REMOTE_ENDPOINT}/files/get-file-ingested`);
+   const response = await fetch(`${await getRemoteEndpoint()}/files/get-file-ingested`);
    if (!response.ok) throw new Error("Failed to fetch user");
    return (await response.json()).message;
 }
@@ -83,7 +84,7 @@ export default function AddDoc() {
       files.forEach((file) => formData.append("files", file));
 
       try {
-         const response = await fetch(`${import.meta.env.VITE_REMOTE_ENDPOINT}/files/upload`, {
+         const response = await fetch(`${await getRemoteEndpoint()}/files/upload`, {
             method: "POST",
             body: formData,
          });

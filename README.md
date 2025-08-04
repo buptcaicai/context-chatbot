@@ -6,3 +6,4 @@ This project demonstrates a context-aware chatbot built using **Kafka**, **LangC
 - **LLM RAG Chat Service**: Handles chat interactions using Retrieval-Augmented Generation (RAG) based on Kafka message streams.
 
 The demo showcases a scalable, message-driven architecture for building intelligent, context-aware conversational systems.
+It contains both kafka and SNS+SQS implementation.

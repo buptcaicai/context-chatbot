@@ -1,0 +1,18 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+    {
+        "Effect": "Deny",
+        "Principal": "*",
+        "Action": "s3:*",
+        "Resource": "arn:aws:s3:::weiminli-click-frontend/*",
+        "Condition": {
+        "NotIpAddress": {
+            "aws:SourceIp": [
+            "119.40.108.249/32"
+            ]
+        }
+        }
+    }
+    ]
+}
